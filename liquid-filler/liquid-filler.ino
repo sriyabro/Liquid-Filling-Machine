@@ -1,3 +1,29 @@
+/**
+*     -- PINOUT
+*     Water Flow Sensor Pin - D2
+*     Start Fill Button - D3          
+*     Pump ON/OFF relay - A1
+*
+*     -- VOULUME BUTTONS
+*     250 ml Button - D4
+*     500 ml Button - D5
+*     750 ml Button - D6
+*     1000 ml Button - D9
+*     2000 ml Button - D8
+*     2500 ml Button - D7
+*     5000 ml Button - D10
+*   
+*     -- LCD DISPLAY
+*     SDA - A4
+*     SCL - A5
+*   
+**/
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
 int waterFlowSensorPin = 2; // Water flow sensor
 int startFill = 3;          // Start fill Button
 int pumpRelay = A1;         // Pump ON/OFF relay
@@ -42,6 +68,10 @@ void setup()
   digitalWrite(pumpRelay, HIGH);                                        // Turn OFF pump
   attachInterrupt(digitalPinToInterrupt(startFill), startFillInt, LOW); // attach interrupt for start fill button
 
+  lcd.begin();
+  lcd.backlight();
+  lcd.print("Power ON");
+
   Serial.begin(9600);
 }
 
@@ -54,6 +84,8 @@ void loop()
   if (startFillPressed && volumeToFill)
   {
     Serial.println("Start Fill Button Pressed !!");
+    lcd.print("START");
+
     startFilling();
   }
 }
@@ -72,6 +104,9 @@ void startFilling()
       filledVolume = calculateFilledVolume();
       Serial.print("Filled Volume: ");
       Serial.println(filledVolume);
+      lcd.print("FILLED VOLUME: ");
+      lcd.setCursor(0, 1);
+      lcd.print(filledVolume);
 
       if (filledVolume >= volumeToFill) // if bottle is filled with selected volume
       {
@@ -80,6 +115,7 @@ void startFilling()
 
         Serial.print("Bottle filled !! - ");
         Serial.println(filledVolume);
+        lcd.print("BOTTLE FILLED");
 
         pulseCount = 0;
         detachInterrupt(digitalPinToInterrupt(waterFlowSensorPin));
@@ -127,43 +163,63 @@ void startFillInt()
   }
 }
 
-
-// get volume to fill beforee start filling
+// get volume to fill before start filling
 void getVolumeToFill()
 {
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    lcd.print("Selected Volume : ");
+    lcd.setCursor(0, 1);
+    lcd.print(volumeToFill);
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    lcd.print("Selected Volume : ");
+    lcd.setCursor(0, 1);
+    lcd.print(volumeToFill);
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    lcd.print("Selected Volume : ");
+    lcd.setCursor(0, 1);
+    lcd.print(volumeToFill);
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    lcd.print("Selected Volume : ");
+    lcd.setCursor(0, 1);
+    lcd.print(volumeToFill);
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    lcd.print("Selected Volume : ");
+    lcd.setCursor(0, 1);
+    lcd.print(volumeToFill);
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    lcd.print("Selected Volume : ");
+    lcd.setCursor(0, 1);
+    lcd.print(volumeToFill);
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    lcd.print("Selected Volume : ");
+    lcd.setCursor(0, 1);
+    lcd.print(volumeToFill);
   }
 }
