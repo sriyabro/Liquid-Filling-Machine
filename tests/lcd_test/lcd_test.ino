@@ -1,4 +1,4 @@
-#include <Wire.h> 
+#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
 // Set the LCD address to 0x27 for a 16 chars and 2 line display
@@ -11,10 +11,16 @@ void setup()
 
 	// Turn on the blacklight and print a message.
 	lcd.backlight();
-	lcd.print("Hello, world!");
 }
 
 void loop()
 {
-	// Do nothing here...
+	lcd.print("Hello, world!");
+	delay(1000);
+	lcd.setCursor(0, 1);
+	lcd.print("Hi");
+	delay(1000);
+
+	lcd.clear();
+	delay(1000);
 }
