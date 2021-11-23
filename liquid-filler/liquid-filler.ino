@@ -2,6 +2,11 @@ int waterFlowSensorPin = 2; // Water flow sensor
 int startFill = 3;          // Start fill Button
 int pumpRelay = A1;         // Pump ON/OFF relay
 
+int stepperPulse = 11;
+int stepperDir = 12;
+int upButton = A2;
+int downButton = A3;
+
 int _250 = 4;
 int _500 = 5;
 int _750 = 6;
@@ -39,22 +44,35 @@ void setup()
   pinMode(startFill, INPUT);
   pinMode(waterFlowSensorPin, INPUT_PULLUP);
 
+  pinMode(stepperPulse, OUTPUT);
+  pinMode(stepperDir, OUTPUT);
+  pinMode(upButton, INPUT_PULLUP);
+  pinMode(downButton, INPUT_PULLUP);
+  // Set the spinning direction CW/CCW:
+  digitalWrite(stepperDir, HIGH);
+
   digitalWrite(pumpRelay, HIGH);                                        // Turn OFF pump
   attachInterrupt(digitalPinToInterrupt(startFill), startFillInt, LOW); // attach interrupt for start fill button
 
   Serial.begin(9600);
 }
 
+// LOOP
 void loop()
 {
+  checkStepper();
   getVolumeToFill();
-  Serial.print("Fill Volume: ");
-  Serial.println(volumeToFill);
-
-  if (startFillPressed && volumeToFill)
+  if (volumeToFill)
   {
-    Serial.println("Start Fill Button Pressed !!");
-    startFilling();
+    if (digitalRead(startFill) == LOW)
+    {
+      startFillPressed = true;
+    }
+    if (startFillPressed && volumeToFill)
+    {
+      Serial.println("Start Fill Button Pressed !!");
+      startFilling();
+    }
   }
 }
 
@@ -108,26 +126,6 @@ long calculateFilledVolume()
   return totalMilliLitres;
 }
 
-// Interrupt SRs
-void pulseCounter()
-{
-  pulseCount++;
-}
-
-void startFillInt()
-{
-  Serial.println("Start Interrupt");
-  if (volumeToFill != 0)
-  {
-    startFillPressed = true;
-  }
-  else
-  {
-    startFillPressed = false;
-  }
-}
-
-
 // get volume to fill beforee start filling
 void getVolumeToFill()
 {
@@ -166,4 +164,35 @@ void getVolumeToFill()
     volumeToFill = 5000;
     calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
+
+  if (volumeToFill)
+  {
+    Serial.print("Fill Volume: ");
+    Serial.println(volumeToFill);
+  }
+}
+
+void checkStepper()
+{
+  while (digitalRead(downButton) == LOW || digitalRead(upButton) == LOW)
+  {
+    if (digitalRead(downButton) == LOW)
+    {
+      digitalWrite(stepperDir, LOW);
+    }
+    else
+    {
+      digitalWrite(stepperDir, HIGH);
+    }
+    digitalWrite(stepperPulse, HIGH);
+    delayMicroseconds(150);
+    digitalWrite(stepperPulse, LOW);
+    delayMicroseconds(150);
+  }
+}
+
+// Interrupt SRs
+void pulseCounter()
+{
+  pulseCount++;
 }
