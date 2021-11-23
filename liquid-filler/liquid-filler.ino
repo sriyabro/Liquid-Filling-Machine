@@ -39,8 +39,8 @@ void setup()
   pinMode(startFill, INPUT);
   pinMode(waterFlowSensorPin, INPUT_PULLUP);
 
-  digitalWrite(pumpRelay, HIGH); // Turn OFF pump
-  attachInterrupt(digitalPinToInterrupt(startFill), startFillInt, LOW);
+  digitalWrite(pumpRelay, HIGH);                                        // Turn OFF pump
+  attachInterrupt(digitalPinToInterrupt(startFill), startFillInt, LOW); // attach interrupt for start fill button
 
   Serial.begin(9600);
 }
@@ -73,7 +73,7 @@ void startFilling()
       Serial.print("Filled Volume: ");
       Serial.println(filledVolume);
 
-      if (filledVolume >= volumeToFill)
+      if (filledVolume >= volumeToFill) // if bottle is filled with selected volume
       {
         digitalWrite(pumpRelay, HIGH); // Turn OFF the pump
         Serial.println("Pump OFF");
@@ -87,7 +87,7 @@ void startFilling()
         filledVolume = 0.0;
         totalMilliLitres = 0.0;
 
-        break;
+        break; // back to loop
       }
     }
   }
@@ -97,7 +97,7 @@ long calculateFilledVolume()
 {
   flowRate = ((pulseCount * 60 / calibrationFactor) * 1000) / 3600; // flow rate in ml/sec
 
-  flowMilliLitres = flowRate * ((millis() - startTime) / 1000);
+  flowMilliLitres = flowRate * ((millis() - startTime) / 1000); // milliliters flown from attach to detach (sec loop start to now)
 
   totalMilliLitres += flowMilliLitres;
 
@@ -108,6 +108,7 @@ long calculateFilledVolume()
   return totalMilliLitres;
 }
 
+// Interrupt SRs
 void pulseCounter()
 {
   pulseCount++;
@@ -115,52 +116,54 @@ void pulseCounter()
 
 void startFillInt()
 {
-  Serial.println("Start Int");
+  Serial.println("Start Interrupt");
   if (volumeToFill != 0)
   {
     startFillPressed = true;
   }
-  else {
+  else
+  {
     startFillPressed = false;
   }
-
 }
 
+
+// get volume to fill beforee start filling
 void getVolumeToFill()
 {
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
-    calibrationFactor = 6.2;
+    calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
-    calibrationFactor = 6.2;
+    calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
-    calibrationFactor = 6.2;
+    calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
-    calibrationFactor = 6.2;
+    calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
-    calibrationFactor = 6.2;
+    calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
-    calibrationFactor = 6.2;
+    calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
-    calibrationFactor = 6.2;
+    calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
 }
