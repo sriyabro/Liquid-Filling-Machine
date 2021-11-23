@@ -10,17 +10,38 @@ void setup()
 	lcd.begin();
 
 	// Turn on the blacklight and print a message.
-	lcd.backlight();
+	// lcd.backlight();
+	printToLCD("SELECTED VOLUME", 1);
+	printToLCD("250 ml", 2);
+	delay(2000);
+	printToLCD("SELECTED VOLUME", 1);
+	printToLCD("500 ml", 2);
+	delay(2000);
+	printToLCD("SELECTED VOLUME", 1);
+	printToLCD("1000 ml", 2);
+	delay(2000);
+	printToLCD("SELECTED VOLUME", 1);
+	printToLCD("2000 ml", 2);
+	delay(2000);
+	printToLCD("SELECTED VOLUME", 1);
+	printToLCD("2500 ml", 2);
+	delay(2000);
+	printToLCD("SELECTED VOLUME", 1);
+	printToLCD("5000 ml", 2);
+	delay(2000);
+	printToLCD("START", 1);
+	printToLCD(" ", 2);
 }
 
 void loop()
 {
-	lcd.print("Hello, world!");
-	delay(1000);
-	lcd.setCursor(0, 1);
-	lcd.print("Hi");
-	delay(1000);
+}
 
-	lcd.clear();
-	delay(1000);
+void printToLCD(String text, int lineNo)
+{
+	lcd.setCursor(0, lineNo - 1);
+	lcd.print("                "); // clear line before print
+	lcd.setCursor(0, lineNo - 1);
+	delay(200);
+	lcd.print(text);
 }
