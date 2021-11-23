@@ -70,7 +70,7 @@ void setup()
 
   lcd.begin();
   lcd.backlight();
-  printToLCD("Power ON", 1);
+  printStrToLCD("Power ON", 1);
   delay(5000);
 
   Serial.begin(9600);
@@ -81,12 +81,15 @@ void loop()
   getVolumeToFill();
   Serial.print("Fill Volume: ");
   Serial.println(volumeToFill);
-  printToLCD("SELECT VOLUME", 1);
+  if (!volumeToFill)
+  {
+    printStrToLCD("SELECT VOLUME", 1);
+  }
 
   if (startFillPressed && volumeToFill)
   {
     Serial.println("Start Fill Button Pressed !!");
-    lcd.print("START");
+    printStrToLCD("START", 1);
 
     startFilling();
   }
@@ -106,9 +109,8 @@ void startFilling()
       filledVolume = calculateFilledVolume();
       Serial.print("Filled Volume: ");
       Serial.println(filledVolume);
-      lcd.print("FILLED VOLUME: ");
-      lcd.setCursor(0, 1);
-      lcd.print(filledVolume);
+      printStrToLCD("FILLED VOLUME: ", 1);
+      printVarToLCD(filledVolume, 2);
 
       if (filledVolume >= volumeToFill) // if bottle is filled with selected volume
       {
@@ -117,7 +119,8 @@ void startFilling()
 
         Serial.print("Bottle filled !! - ");
         Serial.println(filledVolume);
-        lcd.print("BOTTLE FILLED");
+        lcd.clear();
+        printStrToLCD("BOTTLE FILLED", 1);
 
         pulseCount = 0;
         detachInterrupt(digitalPinToInterrupt(waterFlowSensorPin));
@@ -172,64 +175,60 @@ void getVolumeToFill()
   {
     volumeToFill = 250;
     calibrationFactor = 6.2; // [TODO] - calibarate per volume
-    lcd.print("Selected Volume : ");
-    lcd.setCursor(0, 1);
-    lcd.print(volumeToFill);
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
     calibrationFactor = 6.2; // [TODO] - calibarate per volume
-    lcd.print("Selected Volume : ");
-    lcd.setCursor(0, 1);
-    lcd.print(volumeToFill);
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
     calibrationFactor = 6.2; // [TODO] - calibarate per volume
-    lcd.print("Selected Volume : ");
-    lcd.setCursor(0, 1);
-    lcd.print(volumeToFill);
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
     calibrationFactor = 6.2; // [TODO] - calibarate per volume
-    lcd.print("Selected Volume : ");
-    lcd.setCursor(0, 1);
-    lcd.print(volumeToFill);
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
     calibrationFactor = 6.2; // [TODO] - calibarate per volume
-    lcd.print("Selected Volume : ");
-    lcd.setCursor(0, 1);
-    lcd.print(volumeToFill);
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
     calibrationFactor = 6.2; // [TODO] - calibarate per volume
-    lcd.print("Selected Volume : ");
-    lcd.setCursor(0, 1);
-    lcd.print(volumeToFill);
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
     calibrationFactor = 6.2; // [TODO] - calibarate per volume
-    lcd.print("Selected Volume : ");
-    lcd.setCursor(0, 1);
-    lcd.print(volumeToFill);
+  }
+
+  if (volumeToFill)
+  {
+    printStrToLCD("Selected Volume : ", 1);
+    printVarToLCD(volumeToFill, 2);
+    lcd.print(" ml");
   }
 }
 
-
-void printToLCD(String text, int lineNo)
+// print String to LCD
+void printStrToLCD(String text, int lineNo)
 {
-	lcd.setCursor(0, lineNo - 1);
-	delay(200);
-	lcd.print(text);
+  lcd.setCursor(0, lineNo - 1);
+  lcd.print("                "); // clear line before print
+  lcd.setCursor(0, lineNo - 1);
+  lcd.print(text);
+}
+
+// print variable to LCD
+void printVarToLCD(int text, int lineNo)
+{
+  lcd.setCursor(0, lineNo - 1);
+  lcd.print("                "); // clear line before print
+  lcd.setCursor(0, lineNo - 1);
+  lcd.print(text);
 }
