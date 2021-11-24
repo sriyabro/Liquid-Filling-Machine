@@ -15,7 +15,7 @@ int _2000 = 8;
 int _2500 = 7;
 int _5000 = 10;
 
-const float calibrationFactor = 0;
+float calibrationFactor = 0;
 
 int volumeToFill = 0;
 boolean startFillPressed = false;
@@ -52,7 +52,6 @@ void setup()
   digitalWrite(stepperDir, HIGH);
 
   digitalWrite(pumpRelay, HIGH);                                        // Turn OFF pump
-  attachInterrupt(digitalPinToInterrupt(startFill), startFillInt, LOW); // attach interrupt for start fill button
 
   Serial.begin(9600);
 }
@@ -185,9 +184,9 @@ void checkStepper()
       digitalWrite(stepperDir, HIGH);
     }
     digitalWrite(stepperPulse, HIGH);
-    delayMicroseconds(150);
+    delayMicroseconds(200);
     digitalWrite(stepperPulse, LOW);
-    delayMicroseconds(150);
+    delayMicroseconds(200);
   }
 }
 
