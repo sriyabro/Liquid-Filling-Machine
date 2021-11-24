@@ -1,13 +1,15 @@
-// PINS
+// SENSOR PINS
 const int waterFlowSensorPin = 2; // Water flow sensor
 const int startFill = A0;         // Start fill Button
 const int pumpRelay = A1;         // Pump ON/OFF relay
 
+// STEPPER MOTOR CONTROLS
 const int stepperPulse = 11;
 const int stepperDir = 12;
 const int upButton = A2;
 const int downButton = A3;
 
+// VOLUME SELECTOR BUTTONS
 const int _250 = 4;
 const int _500 = 5;
 const int _750 = 6;
@@ -16,12 +18,14 @@ const int _2000 = 8;
 const int _2500 = 7;
 const int _5000 = 10;
 
+// LIMIT SWITCHES
 const int nozzelLimit = 3; // Limit switch at nozzel
 const int topLimit = A6;
 const int bottomLimit = A7;
 
-const int SDA = A4;
-const int SCL = A5;
+// LCD PINS
+// SDA = A4;
+// SCL = A5;
 
 // Global variables
 float calibrationFactor = 0;
