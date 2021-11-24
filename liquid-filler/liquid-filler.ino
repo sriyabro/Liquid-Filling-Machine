@@ -1,5 +1,6 @@
 int waterFlowSensorPin = 2; // Water flow sensor
-int startFill = 3;          // Start fill Button
+int nozzelLimit = 3;        // Limit switch at nozzel
+int startFill = A0;         // Start fill Button
 int pumpRelay = A1;         // Pump ON/OFF relay
 
 int stepperPulse = 11;
@@ -15,10 +16,13 @@ int _2000 = 8;
 int _2500 = 7;
 int _5000 = 10;
 
-float calibrationFactor = 0;
+int topLimit = A6;
+int bottomLimit = A7;
 
-int volumeToFill = 0;
-boolean startFillPressed = false;
+unsigned float calibrationFactor = 0;
+
+unsigned int volumeToFill = 0;
+bool startFillPressed = false;
 
 volatile unsigned int pulseCount = 0;
 
@@ -29,6 +33,10 @@ unsigned long totalMilliLitres = 0;
 float filledVolume = 0.0;
 
 unsigned long startTime = 0;
+
+bool nozzelLimitReached = false;
+bool topLimitReached = false;
+bool bottomLimitReached = false;
 
 void setup()
 {
@@ -48,26 +56,33 @@ void setup()
   pinMode(stepperDir, OUTPUT);
   pinMode(upButton, INPUT_PULLUP);
   pinMode(downButton, INPUT_PULLUP);
-  // Set the spinning direction CW/CCW:
-  digitalWrite(stepperDir, HIGH);
+  digitalWrite(stepperDir, HIGH); // Set the spinning direction CW/CCW:
 
-  digitalWrite(pumpRelay, HIGH);                                        // Turn OFF pump
+  pinMode(nozzelLimit, INPUT_PULLUP);
+  pinMode(topLimit, INPUT_PULLUP);
+  pinMode(bottomLimit, INPUT_PULLUP);
+
+  digitalWrite(pumpRelay, HIGH); // Turn OFF pump
+
+  attachInterrupt(digitalPinToInterrupt(nozzelLimit), nozzelLimitReached, LOW);
 
   Serial.begin(9600);
 }
 
+//--------------------------------------------------------------------------
 // LOOP
 void loop()
 {
   checkStepper();
   getVolumeToFill();
+
   if (volumeToFill)
   {
     if (digitalRead(startFill) == LOW)
     {
       startFillPressed = true;
     }
-    if (startFillPressed && volumeToFill)
+    if (startFillPressed && volumeToFill && nozzelLimitReached)
     {
       Serial.println("Start Fill Button Pressed !!");
       startFilling();
@@ -128,6 +143,7 @@ long calculateFilledVolume()
 // get volume to fill beforee start filling
 void getVolumeToFill()
 {
+  int initialVolToFill = volumeToFill;
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
@@ -164,7 +180,7 @@ void getVolumeToFill()
     calibrationFactor = 6.2; // [TODO] - caliberate per volume
   }
 
-  if (volumeToFill)
+  if (volumeToFill != initialVolToFill)
   {
     Serial.print("Fill Volume: ");
     Serial.println(volumeToFill);
@@ -175,23 +191,56 @@ void checkStepper()
 {
   while (digitalRead(downButton) == LOW || digitalRead(upButton) == LOW)
   {
-    if (digitalRead(downButton) == LOW)
+    checkLimitSwitches();
+    if (topLimitReached || bottomLimitReached || nozzelLimit)
     {
-      digitalWrite(stepperDir, LOW);
+      return;
     }
     else
     {
-      digitalWrite(stepperDir, HIGH);
+      if (digitalRead(downButton) == LOW)
+      {
+        digitalWrite(stepperDir, LOW);
+      }
+      else
+      {
+        digitalWrite(stepperDir, HIGH);
+      }
+      digitalWrite(stepperPulse, HIGH);
+      delayMicroseconds(200);
+      digitalWrite(stepperPulse, LOW);
+      delayMicroseconds(200);
     }
-    digitalWrite(stepperPulse, HIGH);
-    delayMicroseconds(200);
-    digitalWrite(stepperPulse, LOW);
-    delayMicroseconds(200);
+  }
+}
+
+void checkLimitSwitches()
+{
+  if (digitalRead(topLimit) == LOW)
+  {
+    topLimitReached = true;
+  }
+  else
+  {
+    topLimitReached = false;
+  }
+
+  if (digitalRead(bottomLimit) == LOW)
+  {
+    bottomLimitReached = true;
+  }
+  else {
+    bottomLimitReached = false;
   }
 }
 
 // Interrupt SRs
-void pulseCounter()
+void pulseCounter() // pulse counter for water flow sensor
 {
   pulseCount++;
+}
+
+void checkNozzelLimit() // interrupt for limit switch on nozzel
+{
+  nozzelLimitReached = true;
 }
