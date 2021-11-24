@@ -1,25 +1,30 @@
-int waterFlowSensorPin = 2; // Water flow sensor
-int nozzelLimit = 3;        // Limit switch at nozzel
-int startFill = A0;         // Start fill Button
-int pumpRelay = A1;         // Pump ON/OFF relay
+// PINS
+const int waterFlowSensorPin = 2; // Water flow sensor
+const int startFill = A0;         // Start fill Button
+const int pumpRelay = A1;         // Pump ON/OFF relay
 
-int stepperPulse = 11;
-int stepperDir = 12;
-int upButton = A2;
-int downButton = A3;
+const int stepperPulse = 11;
+const int stepperDir = 12;
+const int upButton = A2;
+const int downButton = A3;
 
-int _250 = 4;
-int _500 = 5;
-int _750 = 6;
-int _1000 = 9;
-int _2000 = 8;
-int _2500 = 7;
-int _5000 = 10;
+const int _250 = 4;
+const int _500 = 5;
+const int _750 = 6;
+const int _1000 = 9;
+const int _2000 = 8;
+const int _2500 = 7;
+const int _5000 = 10;
 
-int topLimit = A6;
-int bottomLimit = A7;
+const int nozzelLimit = 3; // Limit switch at nozzel
+const int topLimit = A6;
+const int bottomLimit = A7;
 
-unsigned float calibrationFactor = 0;
+const int SDA = A4;
+const int SCL = A5;
+
+// Global variables
+float calibrationFactor = 0;
 
 unsigned int volumeToFill = 0;
 bool startFillPressed = false;
@@ -49,22 +54,19 @@ void setup()
   pinMode(_2000, INPUT_PULLUP);
   pinMode(_2500, INPUT_PULLUP);
   pinMode(_5000, INPUT_PULLUP);
-  pinMode(startFill, INPUT);
+  pinMode(startFill, INPUT_PULLUP);
   pinMode(waterFlowSensorPin, INPUT_PULLUP);
 
   pinMode(stepperPulse, OUTPUT);
   pinMode(stepperDir, OUTPUT);
   pinMode(upButton, INPUT_PULLUP);
   pinMode(downButton, INPUT_PULLUP);
-  digitalWrite(stepperDir, HIGH); // Set the spinning direction CW/CCW:
 
   pinMode(nozzelLimit, INPUT_PULLUP);
   pinMode(topLimit, INPUT_PULLUP);
   pinMode(bottomLimit, INPUT_PULLUP);
 
   digitalWrite(pumpRelay, HIGH); // Turn OFF pump
-
-  attachInterrupt(digitalPinToInterrupt(nozzelLimit), nozzelLimitReached, LOW);
 
   Serial.begin(9600);
 }
@@ -82,10 +84,15 @@ void loop()
     {
       startFillPressed = true;
     }
-    if (startFillPressed && volumeToFill && nozzelLimitReached)
+    if (startFillPressed && volumeToFill)
     {
-      Serial.println("Start Fill Button Pressed !!");
-      startFilling();
+      moveNozzelDown();
+
+      if (startFillPressed && volumeToFill && nozzelLimitReached)
+      {
+        Serial.println("Start Fill Button Pressed !!");
+        startFilling();
+      }
     }
   }
 }
@@ -99,7 +106,7 @@ void startFilling()
 
   while (filledVolume < volumeToFill)
   {
-    if (millis() > (startTime + 1000)) // calculate filled voulme every second
+    if (millis() > (startTime + 1000)) // calculate filled volume every second
     {
       filledVolume = calculateFilledVolume();
       Serial.print("Filled Volume: ");
@@ -112,6 +119,9 @@ void startFilling()
 
         Serial.print("Bottle filled !! - ");
         Serial.println(filledVolume);
+
+        moveNozzelUp();
+        nozzelLimitReached = false;
 
         pulseCount = 0;
         detachInterrupt(digitalPinToInterrupt(waterFlowSensorPin));
@@ -140,47 +150,47 @@ long calculateFilledVolume()
   return totalMilliLitres;
 }
 
-// get volume to fill beforee start filling
+// get volume to fill before start filling
 void getVolumeToFill()
 {
-  int initialVolToFill = volumeToFill;
+  int prevVolumeToFill = volumeToFill;
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
-    calibrationFactor = 6.2; // [TODO] - caliberate per volume
+    calibrationFactor = 6.2; // [TODO] - calibarate per volume
   }
 
-  if (volumeToFill != initialVolToFill)
+  if (volumeToFill != prevVolumeToFill)
   {
     Serial.print("Fill Volume: ");
     Serial.println(volumeToFill);
@@ -192,7 +202,7 @@ void checkStepper()
   while (digitalRead(downButton) == LOW || digitalRead(upButton) == LOW)
   {
     checkLimitSwitches();
-    if (topLimitReached || bottomLimitReached || nozzelLimit)
+    if (!topLimitReached || !bottomLimitReached)
     {
       return;
     }
@@ -229,8 +239,37 @@ void checkLimitSwitches()
   {
     bottomLimitReached = true;
   }
-  else {
+  else
+  {
     bottomLimitReached = false;
+  }
+}
+
+void moveNozzelUp()
+{
+  digitalWrite(stepperDir, HIGH);
+  for (int i = 0; i < 5000; i++)
+  {
+    digitalWrite(stepperPulse, HIGH);
+    delayMicroseconds(200);
+    digitalWrite(stepperPulse, LOW);
+    delayMicroseconds(200);
+  }
+}
+
+void moveNozzelDown()
+{
+  digitalWrite(stepperDir, LOW);
+  while (digitalRead(nozzelLimit) == HIGH)
+  {
+    digitalWrite(stepperPulse, HIGH);
+    delayMicroseconds(200);
+    digitalWrite(stepperPulse, LOW);
+    delayMicroseconds(200);
+  }
+  if (digitalRead(nozzelLimit) == LOW)
+  {
+    nozzelLimitReached = true;
   }
 }
 
@@ -238,9 +277,4 @@ void checkLimitSwitches()
 void pulseCounter() // pulse counter for water flow sensor
 {
   pulseCount++;
-}
-
-void checkNozzelLimit() // interrupt for limit switch on nozzel
-{
-  nozzelLimitReached = true;
 }
