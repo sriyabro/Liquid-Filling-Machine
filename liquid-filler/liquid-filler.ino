@@ -292,7 +292,6 @@ void moveNozzelUp()
     delayMicroseconds(200);
     digitalWrite(stepperPulse, LOW);
     delayMicroseconds(200);
-    checkLimitSwitches();
   }
 }
 
@@ -305,7 +304,6 @@ void moveNozzelDown()
     delayMicroseconds(200);
     digitalWrite(stepperPulse, LOW);
     delayMicroseconds(200);
-    checkLimitSwitches();
   }
   if (digitalRead(nozzelLimit) == LOW)
   {
