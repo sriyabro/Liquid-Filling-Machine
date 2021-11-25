@@ -1,3 +1,40 @@
+/**
+  -- PINOUT
+  -- SENSOR PINS
+  waterFlowSensorPin - D2  // Water flow sensor
+  startFill - A0          // Start fill Button
+  pumpRelay - A1          // Pump ON/OFF relay
+
+  -- STEPPER MOTOR CONTROLS
+  stepperPulse - D11
+  stepperDir - D12
+  upButton - A2
+  downButton - A3
+
+  -- VOLUME SELECTOR BUTTONS
+  250 - D4
+  500 - D5
+  750 - D6
+  1000 - D9
+  2000 - D8
+  2500 - D7
+  5000 - D10
+
+  -- LIMIT SWITCHES
+  nozzelLimit - D3 // Limit switch at nozzel
+  topBottomLimit - D13
+
+  -- LCD PINS
+  SDA - A4;
+  SCL - A5;
+
+**/
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
 // SENSOR PINS
 const int waterFlowSensorPin = 2; // Water flow sensor
 const int startFill = A0;         // Start fill Button
@@ -20,8 +57,7 @@ const int _5000 = 10;
 
 // LIMIT SWITCHES
 const int nozzelLimit = 3; // Limit switch at nozzel
-const int topLimit = A6;
-const int bottomLimit = A7;
+const int topBottomLimit = 13;
 
 // LCD PINS
 // SDA = A4;
@@ -44,8 +80,7 @@ float filledVolume = 0.0;
 unsigned long startTime = 0;
 
 bool nozzelLimitReached = false;
-bool topLimitReached = false;
-bool bottomLimitReached = false;
+bool limitReached = false;
 
 void setup()
 {
@@ -67,10 +102,14 @@ void setup()
   pinMode(downButton, INPUT_PULLUP);
 
   pinMode(nozzelLimit, INPUT_PULLUP);
-  pinMode(topLimit, INPUT_PULLUP);
-  pinMode(bottomLimit, INPUT_PULLUP);
+  pinMode(topBottomLimit, INPUT_PULLUP);
 
   digitalWrite(pumpRelay, HIGH); // Turn OFF pump
+
+  lcd.begin();
+  lcd.backlight();
+  printStrToLCD("Power ON", 1);
+  delay(1000);
 
   Serial.begin(9600);
 }
@@ -79,9 +118,8 @@ void setup()
 // LOOP
 void loop()
 {
-  checkStepper();
   getVolumeToFill();
-
+  checkStepper();
   if (volumeToFill)
   {
     if (digitalRead(startFill) == LOW)
@@ -94,7 +132,6 @@ void loop()
 
       if (startFillPressed && volumeToFill && nozzelLimitReached)
       {
-        Serial.println("Start Fill Button Pressed !!");
         startFilling();
       }
     }
@@ -105,7 +142,6 @@ void startFilling()
 {
   attachInterrupt(digitalPinToInterrupt(waterFlowSensorPin), pulseCounter, RISING);
   digitalWrite(pumpRelay, LOW); // Turn ON the relay
-  Serial.println("Pump ON");
   startTime = millis();
 
   while (filledVolume < volumeToFill)
@@ -113,16 +149,20 @@ void startFilling()
     if (millis() > (startTime + 1000)) // calculate filled volume every second
     {
       filledVolume = calculateFilledVolume();
-      Serial.print("Filled Volume: ");
-      Serial.println(filledVolume);
+      printStrToLCD("FILLED VOLUME: ", 1);
+      printVarToLCD(filledVolume, 2);
+      lcd.print(" / ");
+      lcd.print(volumeToFill);
+      lcd.print(" ml");
 
       if (filledVolume >= volumeToFill) // if bottle is filled with selected volume
       {
         digitalWrite(pumpRelay, HIGH); // Turn OFF the pump
-        Serial.println("Pump OFF");
 
         Serial.print("Bottle filled !! - ");
         Serial.println(filledVolume);
+        lcd.clear();
+        printStrToLCD("BOTTLE FILLED", 1);
 
         moveNozzelUp();
         nozzelLimitReached = false;
@@ -196,8 +236,9 @@ void getVolumeToFill()
 
   if (volumeToFill != prevVolumeToFill)
   {
-    Serial.print("Fill Volume: ");
-    Serial.println(volumeToFill);
+    printStrToLCD("Selected Volume : ", 1);
+    printVarToLCD(volumeToFill, 2);
+    lcd.print(" ml");
   }
 }
 
@@ -206,11 +247,7 @@ void checkStepper()
   while (digitalRead(downButton) == LOW || digitalRead(upButton) == LOW)
   {
     checkLimitSwitches();
-    if (!topLimitReached || !bottomLimitReached)
-    {
-      return;
-    }
-    else
+    if (!limitReached)
     {
       if (digitalRead(downButton) == LOW)
       {
@@ -230,22 +267,19 @@ void checkStepper()
 
 void checkLimitSwitches()
 {
-  if (digitalRead(topLimit) == LOW)
+  if (digitalRead(topBottomLimit) == LOW)
   {
-    topLimitReached = true;
-  }
-  else
-  {
-    topLimitReached = false;
-  }
-
-  if (digitalRead(bottomLimit) == LOW)
-  {
-    bottomLimitReached = true;
-  }
-  else
-  {
-    bottomLimitReached = false;
+    limitReached = true;
+    digitalWrite(stepperDir, !digitalRead(stepperDir));
+    for (int i = 0; i < 2500; i++)
+    {
+      digitalWrite(stepperPulse, HIGH);
+      delayMicroseconds(200);
+      digitalWrite(stepperPulse, LOW);
+      delayMicroseconds(200);
+    }
+    delay(1000);
+    limitReached = false;
   }
 }
 
@@ -258,6 +292,7 @@ void moveNozzelUp()
     delayMicroseconds(200);
     digitalWrite(stepperPulse, LOW);
     delayMicroseconds(200);
+    checkLimitSwitches();
   }
 }
 
@@ -270,6 +305,7 @@ void moveNozzelDown()
     delayMicroseconds(200);
     digitalWrite(stepperPulse, LOW);
     delayMicroseconds(200);
+    checkLimitSwitches();
   }
   if (digitalRead(nozzelLimit) == LOW)
   {
@@ -281,4 +317,22 @@ void moveNozzelDown()
 void pulseCounter() // pulse counter for water flow sensor
 {
   pulseCount++;
+}
+
+// print String to LCD
+void printStrToLCD(String text, int lineNo)
+{
+  lcd.setCursor(0, lineNo - 1);
+  lcd.print("                "); // clear line before print
+  lcd.setCursor(0, lineNo - 1);
+  lcd.print(text);
+}
+
+// print variable to LCD
+void printVarToLCD(int text, int lineNo)
+{
+  lcd.setCursor(0, lineNo - 1);
+  lcd.print("                "); // clear line before print
+  lcd.setCursor(0, lineNo - 1);
+  lcd.print(text);
 }
