@@ -267,18 +267,10 @@ void checkStepper()
 
 void checkLimitSwitches()
 {
-  if (digitalRead(topBottomLimit) == LOW)
+  if (digitalRead(topBottomLimit) == LOW || digitalRead(nozzelLimit) == LOW)
   {
     limitReached = true;
-    digitalWrite(stepperDir, !digitalRead(stepperDir));
-    for (int i = 0; i < 2500; i++)
-    {
-      digitalWrite(stepperPulse, HIGH);
-      delayMicroseconds(200);
-      digitalWrite(stepperPulse, LOW);
-      delayMicroseconds(200);
-    }
-    delay(1000);
+    safeReturn();
     limitReached = false;
   }
 }
@@ -300,6 +292,12 @@ void moveNozzelDown()
   digitalWrite(stepperDir, LOW);
   while (digitalRead(nozzelLimit) == HIGH)
   {
+    if (digitalRead(topBottomLimit) == LOW)
+    {
+      startFillPressed = false;
+      safeReturn();
+      break;
+    }
     digitalWrite(stepperPulse, HIGH);
     delayMicroseconds(200);
     digitalWrite(stepperPulse, LOW);
@@ -309,6 +307,19 @@ void moveNozzelDown()
   {
     nozzelLimitReached = true;
   }
+}
+
+void safeReturn()
+{
+  digitalWrite(stepperDir, !digitalRead(stepperDir));
+  for (int i = 0; i < 2500; i++)
+  {
+    digitalWrite(stepperPulse, HIGH);
+    delayMicroseconds(200);
+    digitalWrite(stepperPulse, LOW);
+    delayMicroseconds(200);
+  }
+  delay(1000);
 }
 
 // Interrupt SRs
