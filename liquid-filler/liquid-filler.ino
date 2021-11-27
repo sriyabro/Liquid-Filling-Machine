@@ -7,7 +7,7 @@
 
   -- STEPPER MOTOR CONTROLS
   stepperPulse - D11 - PB3
-  stepperDir - D12 - PB4
+  stepperDir - D12 - PB4 - (HIGH - Up | LOW - Down)
   upButton - A2 - PC2
   downButton - A3 - PC3
 
@@ -36,9 +36,9 @@
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // SENSOR PINS
-const int waterFlowSensorPin = 2; // Water flow sensor
-const int startFill = A0;         // Start fill Button
-const int pumpRelay = A1;         // Pump ON/OFF relay
+const int waterFlowSensorPin = 2;        // Water flow sensor
+const int startFill = A0;                // Start fill Button
+const int pumpRelay = A1;                // Pump ON/OFF relay
 
 // STEPPER MOTOR CONTROLS
 const int stepperPulse = 11;
@@ -56,12 +56,8 @@ const int _2500 = 7;
 const int _5000 = 10;
 
 // LIMIT SWITCHES
-const int nozzelLimit = 3; // Limit switch at nozzel
-const int topBottomLimit = 13;
-
-// LCD PINS
-// SDA = A4;
-// SCL = A5;
+const int nozzelLimit = 3;               // Limit switch at nozzel
+const int topBottomLimit = 13;           // Limit switches at top & bottom
 
 // Global variables
 float calibrationFactor = 0;
@@ -104,18 +100,19 @@ void setup()
   pinMode(nozzelLimit, INPUT_PULLUP);
   pinMode(topBottomLimit, INPUT_PULLUP);
 
-  digitalWrite(pumpRelay, HIGH); // Turn OFF pump
+  digitalWrite(pumpRelay, HIGH);         // Turn OFF pump
 
   lcd.begin();
   lcd.backlight();
   printStrToLCD("Power ON", 1);
-  delay(1000);
+  startUpMesaage();                      // [TODO] - Complete Startup message
 
   Serial.begin(9600);
 }
 
-//--------------------------------------------------------------------------
-// LOOP
+/*--------------------------------------------------------------------------
+* LOOP 
+*/
 void loop()
 {
   getVolumeToFill();
@@ -138,15 +135,16 @@ void loop()
   }
 }
 
+
 void startFilling()
 {
   attachInterrupt(digitalPinToInterrupt(waterFlowSensorPin), pulseCounter, RISING);
-  digitalWrite(pumpRelay, LOW); // Turn ON the relay
+  digitalWrite(pumpRelay, LOW);          // Turn ON the relay
   startTime = millis();
 
   while (filledVolume < volumeToFill)
   {
-    if (millis() > (startTime + 1000)) // calculate filled volume every second
+    if (millis() > (startTime + 1000))   // Calculate filled volume every second
     {
       filledVolume = calculateFilledVolume();
       printStrToLCD("FILLED VOLUME: ", 1);
@@ -155,14 +153,17 @@ void startFilling()
       lcd.print(volumeToFill);
       lcd.print(" ml");
 
-      if (filledVolume >= volumeToFill) // if bottle is filled with selected volume
+      if (filledVolume >= volumeToFill)  // if bottle is filled with selected volume
       {
-        digitalWrite(pumpRelay, HIGH); // Turn OFF the pump
+        digitalWrite(pumpRelay, HIGH);   // Turn OFF the pump
 
-        Serial.print("Bottle filled !! - ");
+        Serial.print("Bottle filled !! - "); // [TODO] - Remove  after debug
         Serial.println(filledVolume);
+
         lcd.clear();
         printStrToLCD("BOTTLE FILLED", 1);
+        printVarToLCD(volumeToFill, 2);
+        lcd.print(" ml");
 
         moveNozzelUp();
         nozzelLimitReached = false;
@@ -181,9 +182,9 @@ void startFilling()
 
 long calculateFilledVolume()
 {
-  flowRate = ((pulseCount * 60 / calibrationFactor) * 1000) / 3600; // flow rate in ml/sec
+  flowRate = ((pulseCount * 60 / calibrationFactor) * 1000) / 3600;     // flow rate in ml/sec
 
-  flowMilliLitres = flowRate * ((millis() - startTime) / 1000); // milliliters flown from attach to detach (sec loop start to now)
+  flowMilliLitres = flowRate * ((millis() - startTime) / 1000);         // milliliters flown from attach to detach (sec loop start to now)
 
   totalMilliLitres += flowMilliLitres;
 
@@ -194,44 +195,44 @@ long calculateFilledVolume()
   return totalMilliLitres;
 }
 
-// get volume to fill before start filling
+// Get volume to fill before start filling
 void getVolumeToFill()
 {
   int prevVolumeToFill = volumeToFill;
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
-    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    calibrationFactor = 6.2;             // [TODO] - calibarate per volume
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
-    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    calibrationFactor = 6.2;             // [TODO] - calibarate per volume
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
-    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    calibrationFactor = 6.2;             // [TODO] - calibarate per volume
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
-    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    calibrationFactor = 6.2;             // [TODO] - calibarate per volume
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
-    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    calibrationFactor = 6.2;             // [TODO] - calibarate per volume
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
-    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    calibrationFactor = 6.2;             // [TODO] - calibarate per volume
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
-    calibrationFactor = 6.2; // [TODO] - calibarate per volume
+    calibrationFactor = 6.2;             // [TODO] - calibarate per volume
   }
 
   if (volumeToFill != prevVolumeToFill)
@@ -323,7 +324,7 @@ void safeReturn()
 }
 
 // Interrupt SRs
-void pulseCounter() // pulse counter for water flow sensor
+void pulseCounter()                      // pulse counter for water flow sensor
 {
   pulseCount++;
 }
@@ -332,7 +333,7 @@ void pulseCounter() // pulse counter for water flow sensor
 void printStrToLCD(String text, int lineNo)
 {
   lcd.setCursor(0, lineNo - 1);
-  lcd.print("                "); // clear line before print
+  lcd.print("                ");         // clear line before print
   lcd.setCursor(0, lineNo - 1);
   lcd.print(text);
 }
@@ -341,7 +342,13 @@ void printStrToLCD(String text, int lineNo)
 void printVarToLCD(int text, int lineNo)
 {
   lcd.setCursor(0, lineNo - 1);
-  lcd.print("                "); // clear line before print
+  lcd.print("                ");         // clear line before print
   lcd.setCursor(0, lineNo - 1);
   lcd.print(text);
+}
+
+void startUpMesaage()
+{
+  lcd.clear();
+  /*  STARTUP MESSAGE HERE  */
 }
