@@ -59,9 +59,13 @@ const int _5000 = 10;
 const int nozzelLimit = 3;               // Limit switch at nozzel
 const int topBottomLimit = 13;           // Limit switches at top & bottom
 
-// Global variables
+// Constants
+const int stepperPulseDelayMicros = 200; // Stepper motor pulse delay in microseconds
+const int moveNozzelUpSteps = 5000;
+const int safeReturnMoveSteps = 2500;
 float calibrationFactor = 0;
 
+// Global variables
 unsigned int volumeToFill = 0;
 bool startFillPressed = false;
 
@@ -165,8 +169,8 @@ void startFilling()
         printVarToLCD(volumeToFill, 2);
         lcd.print(" ml");
 
-        moveNozzelUp();
         nozzelLimitReached = false;
+        moveNozzelUp();
 
         pulseCount = 0;
         detachInterrupt(digitalPinToInterrupt(waterFlowSensorPin));
@@ -184,7 +188,7 @@ long calculateFilledVolume()
 {
   flowRate = ((pulseCount * 60 / calibrationFactor) * 1000) / 3600;     // flow rate in ml/sec
 
-  flowMilliLitres = flowRate * ((millis() - startTime) / 1000);         // milliliters flown from attach to detach (sec loop start to now)
+  flowMilliLitres = flowRate * ((millis() - startTime) / 1000);         // milliliters flown from start to now
 
   totalMilliLitres += flowMilliLitres;
 
@@ -259,9 +263,9 @@ void checkStepper()
         digitalWrite(stepperDir, HIGH);
       }
       digitalWrite(stepperPulse, HIGH);
-      delayMicroseconds(200);
+      delayMicroseconds(stepperPulseDelayMicros);
       digitalWrite(stepperPulse, LOW);
-      delayMicroseconds(200);
+      delayMicroseconds(stepperPulseDelayMicros);
     }
   }
 }
@@ -279,12 +283,12 @@ void checkLimitSwitches()
 void moveNozzelUp()
 {
   digitalWrite(stepperDir, HIGH);
-  for (int i = 0; i < 5000; i++)
+  for (int i = 0; i <= moveNozzelUpSteps; i++)
   {
     digitalWrite(stepperPulse, HIGH);
-    delayMicroseconds(200);
+    delayMicroseconds(stepperPulseDelayMicros);
     digitalWrite(stepperPulse, LOW);
-    delayMicroseconds(200);
+    delayMicroseconds(stepperPulseDelayMicros);
   }
 }
 
@@ -300,9 +304,9 @@ void moveNozzelDown()
       break;
     }
     digitalWrite(stepperPulse, HIGH);
-    delayMicroseconds(200);
+    delayMicroseconds(stepperPulseDelayMicros);
     digitalWrite(stepperPulse, LOW);
-    delayMicroseconds(200);
+    delayMicroseconds(stepperPulseDelayMicros);
   }
   if (digitalRead(nozzelLimit) == LOW)
   {
@@ -313,12 +317,12 @@ void moveNozzelDown()
 void safeReturn()
 {
   digitalWrite(stepperDir, !digitalRead(stepperDir));
-  for (int i = 0; i < 2500; i++)
+  for (int i = 0; i < safeReturnMoveSteps; i++)
   {
     digitalWrite(stepperPulse, HIGH);
-    delayMicroseconds(200);
+    delayMicroseconds(stepperPulseDelayMicros);
     digitalWrite(stepperPulse, LOW);
-    delayMicroseconds(200);
+    delayMicroseconds(stepperPulseDelayMicros);
   }
   delay(1000);
 }
