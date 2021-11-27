@@ -324,7 +324,7 @@ void safeReturn()
 }
 
 // Interrupt SRs
-void pulseCounter()                      // pulse counter for water flow sensor
+void pulseCounter()                      // Pulse counter for water flow sensor
 {
   pulseCount++;
 }
@@ -333,7 +333,7 @@ void pulseCounter()                      // pulse counter for water flow sensor
 void printStrToLCD(String text, int lineNo)
 {
   lcd.setCursor(0, lineNo - 1);
-  lcd.print("                ");         // clear line before print
+  lcd.print("                ");         // Clear line before print
   lcd.setCursor(0, lineNo - 1);
   lcd.print(text);
 }
