@@ -1,32 +1,32 @@
 /**
   -- PINOUT
   -- SENSOR PINS
-  waterFlowSensorPin - D2  // Water flow sensor
-  startFill - A0          // Start fill Button
-  pumpRelay - A1          // Pump ON/OFF relay
+  waterFlowSensorPin - D2 - PD2 (INT0)   // Water flow sensor
+  startFill - A0 - PC0                   // Start fill Button
+  pumpRelay - A1 - PC1                   // Pump ON/OFF relay
 
   -- STEPPER MOTOR CONTROLS
-  stepperPulse - D11
-  stepperDir - D12
-  upButton - A2
-  downButton - A3
+  stepperPulse - D11 - PB3
+  stepperDir - D12 - PB4
+  upButton - A2 - PC2
+  downButton - A3 - PC3
 
-  -- VOLUME SELECTOR BUTTONS
-  250 - D4
-  500 - D5
-  750 - D6
-  1000 - D9
-  2000 - D8
-  2500 - D7
-  5000 - D10
+  -- FILLING VOLUME SELECTOR BUTTONS
+  250 ml - D4 - PD4
+  500 ml - D5 - PD5
+  750 ml - D6 - PD6
+  1000 ml - D9 - PB1
+  2000 ml - D8 - PB0
+  2500 ml - D7 - PD7
+  5000 ml - D10 - PB2
 
   -- LIMIT SWITCHES
-  nozzelLimit - D3 // Limit switch at nozzel
-  topBottomLimit - D13
+  nozzelLimit - D3 - PD3                 // Limit switch at nozzel
+  topBottomLimit - D13 - PB5             // Limit switches at top & bottom
 
   -- LCD PINS
-  SDA - A4;
-  SCL - A5;
+  SDA - A4 - PC4
+  SCL - A5 - PC5
 
 **/
 
