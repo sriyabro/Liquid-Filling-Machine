@@ -1,4 +1,14 @@
 /**
+ * @file liquid-filler.ino
+ * @author Sriyanjith Herath (sriyabro@gmail.com)
+ * @brief Automated liquid filler machine firmware for the Arduino Nano.
+ * @version 2.1
+ * @date 2021-11-28
+ * 
+ * @copyright  Copyright 2021 Sriyanjith Herath. All rights reserved. Unauthorized access, copying, publishing, sharing, reuse of algorithms, concepts, design patterns and code level demonstrations are strictly prohibited without any written approval of the author.
+ */
+
+/**
   -- PINOUT
   -- SENSOR PINS
   waterFlowSensorPin - D2 - PD2 (INT0)   // Water flow sensor
@@ -202,7 +212,7 @@ long calculateFilledVolume()
 // Get volume to fill before start filling
 void getVolumeToFill()
 {
-  int prevVolumeToFill = volumeToFill;
+  unsigned int prevVolumeToFill = volumeToFill;
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
