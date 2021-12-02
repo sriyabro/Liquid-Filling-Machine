@@ -25,9 +25,9 @@
   250 ml - D4 - PD4
   500 ml - D5 - PD5
   750 ml - D6 - PD6
-  1000 ml - D9 - PB1
+  1000 ml - D7 - PD7
   2000 ml - D8 - PB0
-  2500 ml - D7 - PD7
+  2500 ml - D9 - PB1
   5000 ml - D10 - PB2
 
   -- LIMIT SWITCHES
@@ -60,9 +60,9 @@ const int downButton = A3;
 const int _250 = 4;
 const int _500 = 5;
 const int _750 = 6;
-const int _1000 = 9;
+const int _1000 = 7;
 const int _2000 = 8;
-const int _2500 = 7;
+const int _2500 = 9;
 const int _5000 = 10;
 
 // LIMIT SWITCHES
