@@ -71,9 +71,10 @@ const int topBottomLimit = 13; // Limit switches at top & bottom
 const int stepperPulseDelayMicros = 200; // Stepper motor pulse delay in microseconds
 const int moveNozzelUpSteps = 5000;
 const int safeReturnMoveSteps = 2500;
-const float volPerSec = 14.4;
 
 // Global variables
+float volPerSec = 0.0;
+
 unsigned int volumeToFill = 0;
 bool startFillPressed = false;
 
@@ -172,30 +173,37 @@ void getVolumeToFill()
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
+    volPerSec = 14.4;
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
+    volPerSec = 14.4;
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
+    volPerSec = 14.4;
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
+    volPerSec = 14.4;
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
+    volPerSec = 14.4;
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
+    volPerSec = 14.4;
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
+    volPerSec = 14.4;
   }
 
   if (volumeToFill != prevVolumeToFill)
