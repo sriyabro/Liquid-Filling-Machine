@@ -45,8 +45,8 @@
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // SENSOR PINS
-const int startFill = A0;         // Start fill Button
-const int pumpRelay = A1;         // Pump ON/OFF relay
+const int startFill = A0; // Start fill Button
+const int pumpRelay = A1; // Pump ON/OFF relay
 
 // STEPPER MOTOR CONTROLS
 const int stepperPulse = 11;
@@ -68,12 +68,12 @@ const int nozzelLimit = 3;     // Limit switch at nozzel
 const int topBottomLimit = 13; // Limit switches at top & bottom
 
 // Constants
-const int stepperPulseDelayMicros = 200; // Stepper motor pulse delay in microseconds
+const int stepperPulseDelayMicros = 150; // Stepper motor pulse delay in microseconds
 const int moveNozzelUpSteps = 5000;
 const int safeReturnMoveSteps = 2500;
 
 // Global variables
-float volPerSec = 0.0;
+float volPerSec = 0.0; // Volume per second
 
 unsigned int volumeToFill = 0;
 bool startFillPressed = false;
@@ -116,8 +116,7 @@ void setup()
 
   lcd.begin();
   lcd.backlight();
-  printStrToLCD("Power ON", 1);
-  startUpMesaage(); // [TODO] - Complete Startup message
+  startUpMesaage();
 
   Serial.begin(9600);
 }
@@ -147,14 +146,12 @@ void loop()
   }
 }
 
-
 void startFilling()
 {
   digitalWrite(pumpRelay, LOW); // Turn ON the relay
 
   delay((volumeToFill / volPerSec) * 1000); // Delay based on volume to fill and flow rate
-  digitalWrite(pumpRelay, HIGH); // Turn OFF the relay
-
+  digitalWrite(pumpRelay, HIGH);            // Turn OFF the relay
 
   lcd.clear();
   printStrToLCD("BOTTLE FILLED", 1);
@@ -173,37 +170,37 @@ void getVolumeToFill()
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
-    volPerSec = 14.4;
+    volPerSec = 66.4;
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
-    volPerSec = 14.4;
+    volPerSec = 66.4;
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
-    volPerSec = 14.4;
+    volPerSec = 66.4;
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
-    volPerSec = 14.4;
+    volPerSec = 66.4;
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
-    volPerSec = 14.4;
+    volPerSec = 66.4;
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
-    volPerSec = 14.4;
+    volPerSec = 66.4;
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
-    volPerSec = 14.4;
+    volPerSec = 66.4;
   }
 
   if (volumeToFill != prevVolumeToFill)
@@ -295,6 +292,178 @@ void safeReturn()
   delay(1000);
 }
 
+// LCD -----------------------------------------------
+
+byte q11[] = {
+    B01111,
+    B11111,
+    B11000,
+    B11001,
+    B11011,
+    B11011,
+    B11011,
+    B11011};
+
+byte q12[] = {
+    B11111,
+    B11111,
+    B00000,
+    B11111,
+    B11111,
+    B00000,
+    B00000,
+    B00000};
+
+byte q13[] = {
+    B11110,
+    B11111,
+    B00011,
+    B11011,
+    B11011,
+    B00011,
+    B00011,
+    B00011};
+
+byte q21[] = {
+    B11011,
+    B11011,
+    B11011,
+    B11011,
+    B11001,
+    B11000,
+    B11111,
+    B01111};
+
+byte q22[] = {
+    B00000,
+    B00000,
+    B00000,
+    B11111,
+    B11111,
+    B00000,
+    B11111,
+    B11111};
+
+byte q23[] = {
+    B00011,
+    B00011,
+    B00011,
+    B11011,
+    B11011,
+    B00011,
+    B11111,
+    B11111};
+
+byte q24[] = {
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B11000,
+    B11000};
+
+byte n15[] = {
+    B11111,
+    B11111,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000};
+
+byte n16[] = {
+    B11111,
+    B11111,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000};
+
+byte n17[] = {
+    B11110,
+    B11111,
+    B00111,
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011};
+
+byte n25[] = {
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000};
+
+byte n26[] = {
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000};
+
+byte n27[] = {
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011,
+    B00011};
+
+byte c110[] = {
+    B01111,
+    B11111,
+    B11100,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000};
+
+byte c111[] = {
+    B11111,
+    B11111,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000};
+
+byte c210[] = {
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11000,
+    B11100,
+    B11111,
+    B01111};
+
+byte c211[] = {
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B00000,
+    B11111,
+    B11111};
+
 // print String to LCD
 void printStrToLCD(String text, int lineNo)
 {
@@ -313,8 +482,45 @@ void printVarToLCD(int text, int lineNo)
   lcd.print(text);
 }
 
+// create and print custom characters to LCD
+void printCustomChar(uint8_t location, uint8_t charmap[], int row, int col)
+{
+  lcd.createChar(location, charmap);
+  lcd.setCursor(col - 1, row - 1);
+  lcd.write(location);
+}
+
+// Power ON startup message
 void startUpMesaage()
 {
   lcd.clear();
-  /*  STARTUP MESSAGE HERE  */
+  printCustomChar(0, q11, 1, 7);
+  printCustomChar(2, q12, 1, 8);
+  printCustomChar(3, q13, 1, 9);
+  printCustomChar(4, q21, 2, 7);
+  printCustomChar(5, q22, 2, 8);
+  printCustomChar(6, q23, 2, 9);
+  printCustomChar(7, q24, 2, 10);
+  delay(800);
+  lcd.clear();
+
+  printCustomChar(8, n15, 1, 7);
+  printCustomChar(9, n16, 1, 8);
+  printCustomChar(10, n17, 1, 9);
+  printCustomChar(11, n25, 2, 7);
+  printCustomChar(12, n26, 2, 8);
+  printCustomChar(13, n27, 2, 9);
+  delay(800);
+  lcd.clear();
+
+  printCustomChar(14, c110, 1, 7);
+  printCustomChar(15, c111, 1, 8);
+  printCustomChar(0, c111, 1, 9);
+  printCustomChar(1, c210, 2, 7);
+  printCustomChar(2, c211, 2, 8);
+  printCustomChar(3, c211, 2, 9);
+  delay(800);
+  lcd.clear();
+  lcd.setCursor(4, 0);
+  lcd.print("POWER ON");
 }
