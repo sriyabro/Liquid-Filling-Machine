@@ -53,8 +53,8 @@
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 /*--------------------------------------------------------------------------
-* SET PINS
-*/
+ * SET PINS
+ */
 // SENSOR PINS
 const int startFill = A0;          // Start fill Button
 const int solenoidValveRelay = A1; // Solenoid valve ON/OFF relay
@@ -87,14 +87,14 @@ const int nozzelLimit = 3;     // Limit switch at nozzel
 const int topBottomLimit = 13; // Limit switches at top & bottom
 
 /*--------------------------------------------------------------------------
-* INITAILIZE VARIABLES
-*/
+ * INITAILIZE VARIABLES
+ */
 // Constants
 const int stepperPulseDelayMicros = 150; // Stepper motor pulse delay in microseconds
 const int moveNozzelUpSteps = 5000;
 const int safeReturnMoveSteps = 2500;
 
-const int pumpPulseDelay = 0.0; // Pump pulse delay in microseconds
+const int pumpPulseDelay = 150; // Pump pulse delay in microseconds
 
 // Global variables
 float volPerSec = 0.0; // Volume per second
@@ -141,7 +141,7 @@ void setup()
   pinMode(pumpPulse, OUTPUT);
   pinMode(pumpDir, OUTPUT);
 
-  pinMode(startFill, INPUT_PULLUP); // start fill btn
+  pinMode(startFill, INPUT_PULLUP);     // start fill btn
   pinMode(manualFillBtn, INPUT_PULLUP); // manual fil btn
 
   pinMode(nozzelLimit, INPUT_PULLUP);
@@ -149,7 +149,7 @@ void setup()
 
   // initailize pins
   digitalWrite(solenoidValveRelay, HIGH); // Turn OFF pump
-  digitalWrite(pumpDir, HIGH);            // Set pump direction - Change HIGH to LOW to move the pump in the opposite direction
+  digitalWrite(pumpDir, LOW);            // Set pump direction - Change HIGH to LOW to move the pump in the opposite direction
 
   lcd.begin();
   lcd.backlight();
@@ -179,7 +179,11 @@ void loop()
       {
         startFilling();
       }
-      else if (digitalRead(manualFillBtn) == LOW)
+    }
+    else if (digitalRead(manualFillBtn) == LOW)
+    {
+      moveNozzelDown();
+      if (digitalRead(manualFillBtn) == LOW && nozzelLimitReached)
       {
         runManualFill();
       }
@@ -224,6 +228,8 @@ void runManualFill()
     }
   }
   digitalWrite(solenoidValveRelay, HIGH); // Turn OFF the relay
+  nozzelLimitReached = false;
+  moveNozzelUp();
 }
 
 // Get volume to fill before start filling
