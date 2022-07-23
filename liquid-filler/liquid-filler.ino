@@ -11,31 +11,35 @@
 /**
   -- PINOUT
   -- SENSOR PINS
-  startFill - A0 - PC0                   // Start fill Button
-  pumpRelay - A1 - PC1                   // Pump ON/OFF relay
+  startFill - A0 - PF0                   // Start fill Button
+  pumpRelay - A1 - PF1                   // Pump ON/OFF relay
 
   -- STEPPER MOTOR CONTROLS
-  stepperPulse - D11 - PB3
-  stepperDir - D12 - PB4 - (HIGH - Up | LOW - Down)
-  upButton - A2 - PC2
-  downButton - A3 - PC3
+  stepperPulse - D11 - PB5
+  stepperDir - D12 - PB6 - (HIGH - Up | LOW - Down)
+  upButton - A2 - PF2
+  downButton - A3 - PF3
 
   -- FILLING VOLUME SELECTOR BUTTONS
-  250 ml - D4 - PD4
-  500 ml - D5 - PD5
-  750 ml - D6 - PD6
-  1000 ml - D7 - PD7
-  2000 ml - D8 - PB0
-  2500 ml - D9 - PB1
-  5000 ml - D10 - PB2
+  250 ml - D4 - PG5
+  500 ml - D5 - PE3
+  750 ml - D6 - PH3
+  1000 ml - D7 - PH4
+  2000 ml - D8 - PH5
+  2500 ml - D9 - PH6
+  5000 ml - D10 - PB4
 
   -- LIMIT SWITCHES
-  nozzelLimit - D3 - PD3                 // Limit switch at nozzel
-  topBottomLimit - D13 - PB5             // Limit switches at top & bottom
+  nozzelLimit - D3 - PE5                 // Limit switch at nozzel
+  topBottomLimit - D13 - PB7             // Limit switches at top & bottom
 
   -- LCD PINS
-  SDA - A4 - PC4
-  SCL - A5 - PC5
+  SDA - A4 - PF4
+  SCL - A5 - PF5
+
+  -- PERISTALTIC PUMP STEPPER CONTROLS
+  pumpStep - D2 - PB6
+  pumpDir - D1 - PB7
 
 **/
 
