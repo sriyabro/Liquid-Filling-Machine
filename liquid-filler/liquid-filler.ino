@@ -42,7 +42,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // SENSOR PINS
 const int startFill = A0; // Start fill Button
@@ -170,37 +170,37 @@ void getVolumeToFill()
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
-    volPerSec = 66.4;
+    volPerSec = 29.7;
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
-    volPerSec = 66.4;
+    volPerSec = 29.5;
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
-    volPerSec = 66.4;
+    volPerSec = 29.4;
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
-    volPerSec = 66.4;
+    volPerSec = 30.5;
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
-    volPerSec = 66.4;
+    volPerSec = 32.8;
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
-    volPerSec = 66.4;
+    volPerSec = 36.4;
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
-    volPerSec = 66.4;
+    volPerSec = 36.4;
   }
 
   if (volumeToFill != prevVolumeToFill)
