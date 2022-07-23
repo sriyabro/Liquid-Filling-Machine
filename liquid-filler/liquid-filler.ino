@@ -4,7 +4,7 @@
  * @brief Automated liquid filler machine firmware for the Arduino Mega 2560 R3 .
  * @version 4.0
  * @date 2022-07-13
- * 
+ *
  * @copyright  Copyright 2021 Sriyanjith Herath. All rights reserved. Unauthorized access, copying, publishing, sharing, reuse of algorithms, concepts, design patterns and code level demonstrations are strictly prohibited without any written approval of the author.
  */
 
@@ -28,6 +28,7 @@
   2000 ml - D8 - PH5
   2500 ml - D9 - PH6
   5000 ml - D10 - PB4
+  5500ml - D24 - PA2
 
   -- LIMIT SWITCHES
   nozzelLimit - D3 - PE5                 // Limit switch at nozzel
@@ -38,8 +39,11 @@
   SCL - A5 - PF5
 
   -- PERISTALTIC PUMP STEPPER CONTROLS
-  pumpStep - D2 - PB6
-  pumpDir - D1 - PB7
+  pumpPulse - D22 - PA0
+  pumpDir - D23 - PA1
+
+  -- MANUAL FILL BUTTON
+  manualFillBtn - D25 - PA3
 
 **/
 
@@ -48,17 +52,24 @@
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
+/*--------------------------------------------------------------------------
+* SET PINS
+*/
 // SENSOR PINS
-const int startFill = A0; // Start fill Button
-const int pumpRelay = A1; // Pump ON/OFF relay
+const int startFill = A0;          // Start fill Button
+const int solenoidValveRelay = A1; // Solenoid valve ON/OFF relay
 
-// STEPPER MOTOR CONTROLS
+// PERISTALTIC PUMP STEPPER PINS
+const int pumpPulse = 22; // Pump step pin
+const int pumpDir = 23;   // Pump direction pin
+
+// STEPPER MOTOR CONTROL PINS
 const int stepperPulse = 11;
 const int stepperDir = 12;
 const int upButton = A2;
 const int downButton = A3;
 
-// VOLUME SELECTOR BUTTONS
+// VOLUME SELECTOR BUTTONS PINS
 const int _250 = 4;
 const int _500 = 5;
 const int _750 = 6;
@@ -66,18 +77,29 @@ const int _1000 = 7;
 const int _2000 = 8;
 const int _2500 = 9;
 const int _5000 = 10;
+const int _5500 = 24;
+
+// MANUAL FILL BTN
+const int manualFillBtn = 25; // manual fill button - press hold to fill
 
 // LIMIT SWITCHES
 const int nozzelLimit = 3;     // Limit switch at nozzel
 const int topBottomLimit = 13; // Limit switches at top & bottom
 
+/*--------------------------------------------------------------------------
+* INITAILIZE VARIABLES
+*/
 // Constants
 const int stepperPulseDelayMicros = 150; // Stepper motor pulse delay in microseconds
 const int moveNozzelUpSteps = 5000;
 const int safeReturnMoveSteps = 2500;
 
+const int pumpPulseDelay = 0.0; // Pump pulse delay in microseconds
+
 // Global variables
 float volPerSec = 0.0; // Volume per second
+
+int pumpSteps = 0; // Number of steps to move the pump
 
 unsigned int volumeToFill = 0;
 bool startFillPressed = false;
@@ -95,9 +117,12 @@ unsigned long startTime = 0;
 bool nozzelLimitReached = false;
 bool limitReached = false;
 
+/*--------------------------------------------------------------------------
+ * SETUP
+ */
 void setup()
 {
-  pinMode(pumpRelay, OUTPUT);
+  pinMode(solenoidValveRelay, OUTPUT);
 
   pinMode(_250, INPUT_PULLUP);
   pinMode(_500, INPUT_PULLUP);
@@ -106,17 +131,25 @@ void setup()
   pinMode(_2000, INPUT_PULLUP);
   pinMode(_2500, INPUT_PULLUP);
   pinMode(_5000, INPUT_PULLUP);
-  pinMode(startFill, INPUT_PULLUP);
+  pinMode(_5500, INPUT_PULLUP);
 
   pinMode(stepperPulse, OUTPUT);
   pinMode(stepperDir, OUTPUT);
   pinMode(upButton, INPUT_PULLUP);
   pinMode(downButton, INPUT_PULLUP);
 
+  pinMode(pumpPulse, OUTPUT);
+  pinMode(pumpDir, OUTPUT);
+
+  pinMode(startFill, INPUT_PULLUP); // start fill btn
+  pinMode(manualFillBtn, INPUT_PULLUP); // manual fil btn
+
   pinMode(nozzelLimit, INPUT_PULLUP);
   pinMode(topBottomLimit, INPUT_PULLUP);
 
-  digitalWrite(pumpRelay, HIGH); // Turn OFF pump
+  // initailize pins
+  digitalWrite(solenoidValveRelay, HIGH); // Turn OFF pump
+  digitalWrite(pumpDir, HIGH);            // Set pump direction - Change HIGH to LOW to move the pump in the opposite direction
 
   lcd.begin();
   lcd.backlight();
@@ -126,8 +159,8 @@ void setup()
 }
 
 /*--------------------------------------------------------------------------
-* LOOP 
-*/
+ * LOOP
+ */
 void loop()
 {
   getVolumeToFill();
@@ -146,16 +179,25 @@ void loop()
       {
         startFilling();
       }
+      else if (digitalRead(manualFillBtn) == LOW)
+      {
+        runManualFill();
+      }
     }
   }
 }
 
 void startFilling()
 {
-  digitalWrite(pumpRelay, LOW); // Turn ON the relay
-
-  delay((volumeToFill / volPerSec) * 1000); // Delay based on volume to fill and flow rate
-  digitalWrite(pumpRelay, HIGH);            // Turn OFF the relay
+  digitalWrite(solenoidValveRelay, LOW); // Turn ON the relay
+  for (int i = 0; i <= pumpSteps; i++)
+  {
+    digitalWrite(pumpPulse, HIGH);
+    delayMicroseconds(pumpPulseDelay);
+    digitalWrite(pumpPulse, LOW);
+    delayMicroseconds(pumpPulseDelay);
+  }
+  digitalWrite(solenoidValveRelay, HIGH); // Turn OFF the relay
 
   lcd.clear();
   printStrToLCD("BOTTLE FILLED", 1);
@@ -167,6 +209,23 @@ void startFilling()
   startFillPressed = false;
 }
 
+void runManualFill()
+{
+  digitalWrite(solenoidValveRelay, LOW); // Turn ON the relay
+  while (digitalRead(manualFillBtn) == LOW)
+  {
+    digitalWrite(pumpPulse, HIGH);
+    delayMicroseconds(pumpPulseDelay);
+    digitalWrite(pumpPulse, LOW);
+    delayMicroseconds(pumpPulseDelay);
+    if (digitalRead(manualFillBtn) == HIGH)
+    {
+      break;
+    }
+  }
+  digitalWrite(solenoidValveRelay, HIGH); // Turn OFF the relay
+}
+
 // Get volume to fill before start filling
 void getVolumeToFill()
 {
@@ -175,36 +234,49 @@ void getVolumeToFill()
   {
     volumeToFill = 250;
     volPerSec = 29.7;
+    pumpSteps = 1000;
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
     volPerSec = 29.5;
+    pumpSteps = 1000;
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
     volPerSec = 29.4;
+    pumpSteps = 1000;
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
     volPerSec = 30.5;
+    pumpSteps = 1000;
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
     volPerSec = 32.8;
+    pumpSteps = 1000;
   }
   else if (digitalRead(_2500) == LOW)
   {
     volumeToFill = 2500;
     volPerSec = 36.4;
+    pumpSteps = 1000;
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
     volPerSec = 36.4;
+    pumpSteps = 1000;
+  }
+  else if (digitalRead(_5500) == LOW)
+  {
+    volumeToFill = 5500;
+    volPerSec = 36.4;
+    pumpSteps = 1000;
   }
 
   if (volumeToFill != prevVolumeToFill)
