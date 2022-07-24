@@ -45,10 +45,16 @@
   -- MANUAL FILL BUTTON
   manualFillBtn - D25 - PA3
 
+  -- KEYPAD 4x4
+  ROWS - D26, D27, D28, D29
+  Cols - D30, D31, D32, D33
+
+
 **/
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
@@ -86,6 +92,10 @@ const int manualFillBtn = 25; // manual fill button - press hold to fill
 const int nozzelLimit = 3;     // Limit switch at nozzel
 const int topBottomLimit = 13; // Limit switches at top & bottom
 
+// KEYPAD PINS
+byte rowPins[4] = {26, 27, 28, 29};
+byte colPins[4] = {30, 31, 32, 33};
+
 /*--------------------------------------------------------------------------
  * INITAILIZE VARIABLES
  */
@@ -116,6 +126,16 @@ unsigned long startTime = 0;
 
 bool nozzelLimitReached = false;
 bool limitReached = false;
+
+// key map
+char keyMap[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+Keypad keypad = Keypad(makeKeymap(keyMap), rowPins, colPins, 4, 4); 
+
 
 /*--------------------------------------------------------------------------
  * SETUP
