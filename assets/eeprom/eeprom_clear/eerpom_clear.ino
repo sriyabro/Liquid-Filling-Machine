@@ -14,6 +14,7 @@ void setup()
 {
     // initialize the LED pin as an output.
     pinMode(13, OUTPUT);
+    Serial.begin(9600);
 
     /***
       Iterate through each byte of the EEPROM storage.
@@ -38,6 +39,7 @@ void setup()
         digitalWrite(13, LOW);
         delay(2000);
     }
+    Serial.println("EEPROM CLEARED");
 }
 
 void loop()

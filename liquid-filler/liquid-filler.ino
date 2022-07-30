@@ -75,6 +75,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
+#include <EEPROM.h>
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
@@ -127,12 +128,14 @@ const int stepperPulseDelayMicros = 150; // Stepper motor pulse delay in microse
 const int moveNozzelUpSteps = 5000;
 const int safeReturnMoveSteps = 2500;
 
+const int addressSpacingFactor = 8; // EEPROM address spacing factor
+
 const int pumpPulseDelay = 150; // Pump pulse delay in microseconds
 
 // Global variables
 float volPerSec = 0.0; // Volume per second
 
-int pumpSteps = 0; // Number of steps to move the pump
+double pumpSteps = 0; // Number of steps to move the pump
 
 unsigned int volumeToFill = 0;
 bool startFillPressed = false;
@@ -158,7 +161,7 @@ char keyMap[4][4] = {
     {'*', '0', '#', 'D'}};
 Keypad keypad = Keypad(makeKeymap(keyMap), rowPins, colPins, 4, 4);
 
-String menuItems[] = {"250 ml", "330 ml", "500 ml", "675 ml", "750 ml", "1000 ml", "2000 ml", "5000ml"};
+String menuItems[] = {"250 ml", "330 ml", "500 ml", "675 ml", "750 ml", "1000 ml", "2000 ml", "5000 ml"};
 
 bool menuInvoked = false;
 // Navigation button variables
@@ -239,7 +242,7 @@ void setup()
   digitalWrite(solenoidValveRelay, HIGH); // Turn OFF pump
   digitalWrite(pumpDir, LOW);             // Set pump direction - Change HIGH to LOW to move the pump in the opposite direction
 
-  lcd.begin(20,4);
+  lcd.begin();
   lcd.backlight();
   startUpMesaage();
 
@@ -340,50 +343,52 @@ void getVolumeToFill()
   {
     volumeToFill = 250;
     volPerSec = 29.7;
-    pumpSteps = 1000;
+    EEPROM.get(0 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_330) == LOW)
   {
     volumeToFill = 330;
     volPerSec = 29.5;
-    pumpSteps = 1000;
+    EEPROM.get(1 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
     volPerSec = 29.4;
-    pumpSteps = 1000;
+    EEPROM.get(2 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_675) == LOW)
   {
     volumeToFill = 675;
     volPerSec = 30.5;
-    pumpSteps = 1000;
+    EEPROM.get(3 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
     volPerSec = 32.8;
-    pumpSteps = 1000;
+    EEPROM.get(4 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
     volPerSec = 36.4;
-    pumpSteps = 1000;
+    EEPROM.get(5 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
     volPerSec = 36.4;
-    pumpSteps = 1000;
+    EEPROM.get(6 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
     volPerSec = 36.4;
-    pumpSteps = 1000;
+    EEPROM.get(7 * addressSpacingFactor, pumpSteps);
   }
+  Serial.print("pumpSteps: "); // DEBUG
+  Serial.println(pumpSteps);   // DEBUG
 
   if (volumeToFill != prevVolumeToFill)
   {
@@ -568,9 +573,7 @@ void operateMainMenu()
   while (activeButton == 0)
   {
     int button;
-    delay(500); // [DEBUG]
     button = evaluateButton(readKey);
-    Serial.println(button); // [DEBUG]
     if (button == 42)
     {
       menuInvoked = false;
@@ -581,7 +584,7 @@ void operateMainMenu()
     {
     case 0: // When button returns as 0 there is no action taken
       break;
-    case 66: // down
+    case 66: // down -------------------------------------------------------
       button = 0;
       if (menuPage % 2 == 0 and cursorPosition % 2 != 0)
       {
@@ -607,7 +610,7 @@ void operateMainMenu()
       drawCursor();
       activeButton = 1;
       break;
-    case 65: // up
+    case 65: // up -------------------------------------------------------
       button = 0;
       if (menuPage == 0)
       {
@@ -662,8 +665,18 @@ void menuItem(int itemId) // itemId - cursorPointer
   int activeButton = 0;
 
   lcd.clear();
-  lcd.setCursor(0, 0);
+  double savedSteps;
+  EEPROM.get(itemId * addressSpacingFactor, savedSteps);
+
+  printStrToLCD("Enter calibaration ", 1);
+  lcd.setCursor(0, 1);
+  lcd.print("value for ");
+  lcd.setCursor(10, 1);
   lcd.print(menuItems[itemId]);
+  lcd.setCursor(0, 2);
+  lcd.print("Steps:");
+  lcd.setCursor(7, 2);
+  lcd.print(savedSteps);
 
   while (activeButton == 0)
   {
@@ -676,9 +689,21 @@ void menuItem(int itemId) // itemId - cursorPointer
       {
         if (inputString.length() > 0)
         {
-          int inputInt = inputString.toInt();
-          saveInput(itemId, inputInt);
+          double saveVal = inputString.toDouble();
+          Serial.print("Saving input - "); // [DEBUG]
+          Serial.print(menuItems[itemId]); // [DEBUG]
+          Serial.print(" : ");             // [DEBUG]
+          Serial.print(itemId);            // [DEBUG]
+          Serial.print(" : ");             // [DEBUG]
+          Serial.println(saveVal);         // [DEBUG]
+          // SAVING TO EEPROM
+          EEPROM.put((itemId * addressSpacingFactor), saveVal);
+          lcd.clear();
+          printStrToLCD("Calibaration value", 1);
+          printStrToLCD("saved successfully !", 2);
+          delay(2000);
           inputString = ""; // clear input
+          activeButton = 1;
         }
       }
       else if (key == 'C')
@@ -691,26 +716,16 @@ void menuItem(int itemId) // itemId - cursorPointer
         activeButton = 1;
       }
       if (key >= '0' && key <= '9')
-      {                      // only act on numeric keys
+      {
         Serial.println(key); // [DEBUG]
         inputString += key;
         Serial.print("inputString: "); // [DEBUG]
         Serial.println(inputString);   // [DEBUG]
       }
-      lcd.setCursor(0, 1);
-      lcd.print(inputString);
+      printStrToLCD(inputString, 4);
     }
   }
 }
-
-void saveInput(int volIndex, int inputInt)
-{
-  Serial.print("Saving input - "); // [DEBUG]
-  Serial.print(menuItems[volIndex]); // [DEBUG]
-  Serial.println(" : "); // [DEBUG]
-  Serial.println(inputInt); // [DEBUG]
-  /// SAVING here
-};
 
 int evaluateButton(int x)
 {
@@ -725,7 +740,7 @@ int evaluateButton(int x)
 void printStrToLCD(String text, int lineNo)
 {
   lcd.setCursor(0, lineNo - 1);
-  lcd.print("                "); // Clear line before print
+  lcd.print("                    "); // Clear line before print
   lcd.setCursor(0, lineNo - 1);
   lcd.print(text);
 }
@@ -734,7 +749,7 @@ void printStrToLCD(String text, int lineNo)
 void printVarToLCD(int text, int lineNo)
 {
   lcd.setCursor(0, lineNo - 1);
-  lcd.print("                "); // clear line before print
+  lcd.print("                    "); // clear line before print
   lcd.setCursor(0, lineNo - 1);
   lcd.print(text);
 }
