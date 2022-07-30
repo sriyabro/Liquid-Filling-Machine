@@ -124,7 +124,7 @@ const int menuBtn = 19; // menu button
  * INITAILIZE VARIABLES
  */
 // Constants
-const int stepperPulseDelayMicros = 150; // Stepper motor pulse delay in microseconds
+const int stepperPulseDelayMicros = 60; // Stepper motor pulse delay in microseconds
 const int moveNozzelUpSteps = 5000;
 const int safeReturnMoveSteps = 2500;
 
