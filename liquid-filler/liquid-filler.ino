@@ -387,8 +387,6 @@ void getVolumeToFill()
     volPerSec = 36.4;
     EEPROM.get(7 * addressSpacingFactor, pumpSteps);
   }
-  Serial.print("pumpSteps: "); // DEBUG
-  Serial.println(pumpSteps);   // DEBUG
 
   if (volumeToFill != prevVolumeToFill)
   {
@@ -683,21 +681,14 @@ void menuItem(int itemId) // itemId - cursorPointer
     char key = keypad.getKey();
     if (key)
     {
-      Serial.println(key); // [DEBUG]
-
       if (key == 'D')
       {
         if (inputString.length() > 0)
         {
           double saveVal = inputString.toDouble();
-          Serial.print("Saving input - "); // [DEBUG]
-          Serial.print(menuItems[itemId]); // [DEBUG]
-          Serial.print(" : ");             // [DEBUG]
-          Serial.print(itemId);            // [DEBUG]
-          Serial.print(" : ");             // [DEBUG]
-          Serial.println(saveVal);         // [DEBUG]
           // SAVING TO EEPROM
           EEPROM.put((itemId * addressSpacingFactor), saveVal);
+
           lcd.clear();
           printStrToLCD("Calibaration value", 1);
           printStrToLCD("saved successfully !", 2);
@@ -717,10 +708,7 @@ void menuItem(int itemId) // itemId - cursorPointer
       }
       if (key >= '0' && key <= '9')
       {
-        Serial.println(key); // [DEBUG]
         inputString += key;
-        Serial.print("inputString: "); // [DEBUG]
-        Serial.println(inputString);   // [DEBUG]
       }
       printStrToLCD(inputString, 4);
     }
