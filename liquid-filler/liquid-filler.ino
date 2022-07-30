@@ -2,8 +2,8 @@
  * @file liquid-filler.ino
  * @author Sriyanjith Herath (sriyabro@gmail.com)
  * @brief Automated liquid filler machine firmware for the Arduino Mega 2560 R3 .
- * @version 4.1
- * @date 2022-07-30
+ * @version 4.3
+ * @date 2022-07-31
  *
  * @copyright  Copyright 2021 Sriyanjith Herath. All rights reserved. Unauthorized access, copying, publishing, sharing, reuse of algorithms, concepts, design patterns and code level demonstrations are strictly prohibited without any written approval of the author.
  */
@@ -124,13 +124,13 @@ const int menuBtn = 19; // menu button
  * INITAILIZE VARIABLES
  */
 // Constants
-const int stepperPulseDelayMicros = 60; // Stepper motor pulse delay in microseconds
+const int stepperPulseDelayMicros = 150; // Stepper motor pulse delay in microseconds
 const int moveNozzelUpSteps = 5000;
 const int safeReturnMoveSteps = 2500;
 
 const int addressSpacingFactor = 8; // EEPROM address spacing factor
 
-const int pumpPulseDelay = 150; // Pump pulse delay in microseconds
+const int pumpPulseDelay = 60; // Pump pulse delay in microseconds
 
 // Global variables
 float volPerSec = 0.0; // Volume per second
@@ -164,7 +164,7 @@ Keypad keypad = Keypad(makeKeymap(keyMap), rowPins, colPins, 4, 4);
 String menuItems[] = {"250 ml", "330 ml", "500 ml", "675 ml", "750 ml", "1000 ml", "2000 ml", "5000 ml"};
 
 bool menuInvoked = false;
-// Navigation button variables
+// Navigation buttons variables
 int readKey;
 int key;
 // Menu control variables
@@ -208,6 +208,7 @@ byte menuCursor[8] = {
     B01000, //  *
     B00000  //
 };
+
 /*--------------------------------------------------------------------------
  * SETUP
  */
@@ -247,8 +248,6 @@ void setup()
   startUpMesaage();
 
   Serial.begin(9600);
-  Serial.print("MenupagesMAx: ");
-  Serial.println(maxMenuPages);
 
   keypad.addEventListener(keypadEvent); // Add an event listener for this keypad
   lcd.createChar(0, menuCursor);
@@ -570,11 +569,6 @@ void operateMainMenu()
       cursorPosition = cursorPosition + 1;
       cursorPosition = constrain(cursorPosition, 0, ((sizeof(menuItems) / sizeof(String)) - 1));
 
-      Serial.print("menuPage: ");       // [DEBUG]
-      Serial.println(menuPageIndex);    // [DEBUG]
-      Serial.print("cursorPosition: "); // [DEBUG]
-      Serial.println(cursorPosition);   // [DEBUG]
-
       mainMenuDraw();
       drawCursor();
       activeButton = 1;
@@ -595,11 +589,6 @@ void operateMainMenu()
       cursorPosition = cursorPosition - 1;
       cursorPosition = constrain(cursorPosition, 0, ((sizeof(menuItems) / sizeof(String)) - 1));
 
-      Serial.print("menuPage: ");       // [DEBUG]
-      Serial.println(menuPageIndex);    // [DEBUG]
-      Serial.print("cursorPosition: "); // [DEBUG]
-      Serial.println(cursorPosition);   // [DEBUG]
-
       mainMenuDraw();
       drawCursor();
       activeButton = 1;
@@ -607,11 +596,6 @@ void operateMainMenu()
     case 68: // This case will execute if the "OK" button is pressed
       button = 0;
       activeButton = 1;
-
-      Serial.print("menuPage: ");       // [DEBUG]
-      Serial.println(menuPageIndex);    // [DEBUG]
-      Serial.print("cursorPosition: "); // [DEBUG]
-      Serial.println(cursorPosition);   // [DEBUG]
 
       menuItem(cursorPosition);
       mainMenuDraw();
@@ -623,7 +607,7 @@ void operateMainMenu()
   }
 }
 
-void menuItem(int itemId) // itemId - cursorPointer
+void menuItem(int itemId) // (itemId - cursorPointer)
 {                         // Function executes when you select a item from main menu
   int activeButton = 0;
 
@@ -667,7 +651,7 @@ void menuItem(int itemId) // itemId - cursorPointer
       else if (key == '*')
       {
         inputString = ""; // clear input
-        activeButton = 1;
+        activeButton = 1; // go back
       }
       if (key >= '0' && key <= '9')
       {
