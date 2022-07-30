@@ -10,16 +10,36 @@
 
 #include <EEPROM.h>
 
+String menuItems[] = {"250 ml", "330 ml", "500 ml", "675 ml", "750 ml", "1000 ml", "2000 ml", "5000ml"};
+const int addressSpace = 8;
+int value; 
+
 void setup()
 {
-  // initialize the LED pin as an output.
   Serial.begin(9600);
-
   Serial.println("start");
-  for (int i = 0; i < EEPROM.length(); i++)
+
+  // WRITE
+  // for (unsigned int i = 0; i < (sizeof(menuItems) / sizeof(String)); i++)
+  // {
+  //   value = i*200;
+  //   Serial.println(value);
+  //   EEPROM.put(i * addressSpace, value);
+
+  //   delay(100);
+  // }
+
+
+  // READ
+  for (unsigned int j = 0; j < (sizeof(menuItems) / sizeof(String)); j++)
   {
-    EEPROM.read(i);
+    Serial.print("Saved:");
+    Serial.println(EEPROM.get(j * addressSpace, value));
+    delay(100);
+
   }
+
+
   Serial.println("end");
 }
 
