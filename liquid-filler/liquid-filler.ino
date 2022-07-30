@@ -168,7 +168,7 @@ bool menuInvoked = false;
 int readKey;
 int key;
 // Menu control variables
-int menuPage = 0;
+int menuPageIndex = 0;
 int maxMenuPages = round(((sizeof(menuItems) / sizeof(String)) / 2) + .5);
 int cursorPosition = 0;
 int result = 0;
@@ -247,6 +247,8 @@ void setup()
   startUpMesaage();
 
   Serial.begin(9600);
+  Serial.print("MenupagesMAx: ");
+  Serial.println(maxMenuPages);
 
   keypad.addEventListener(keypadEvent); // Add an event listener for this keypad
   lcd.createChar(0, menuCursor);
@@ -495,27 +497,27 @@ void mainMenuDraw()
 {
   lcd.clear();
   lcd.setCursor(1, 0);
-  lcd.print(menuItems[menuPage]);
+  lcd.print(menuItems[menuPageIndex]);
   lcd.setCursor(1, 1);
-  lcd.print(menuItems[menuPage + 1]);
+  lcd.print(menuItems[menuPageIndex + 1]);
   lcd.setCursor(1, 2);
-  lcd.print(menuItems[menuPage + 2]);
+  lcd.print(menuItems[menuPageIndex + 2]);
   lcd.setCursor(1, 3);
-  lcd.print(menuItems[menuPage + 3]);
-  if (menuPage == 0)
+  lcd.print(menuItems[menuPageIndex + 3]);
+  if ((menuPageIndex == 0) and (cursorPosition == 0))
   {
     lcd.setCursor(15, 3);
     lcd.write(byte(2));
   }
-  else if (menuPage > 0 and menuPage < maxMenuPages)
+  else if ((menuPageIndex == (maxMenuPages - 1)) and (cursorPosition == ((sizeof(menuItems) / sizeof(String)) - 1)))
   {
-    lcd.setCursor(15, 3);
-    lcd.write(byte(2));
     lcd.setCursor(15, 0);
     lcd.write(byte(1));
   }
-  else if (menuPage == maxMenuPages)
+  else
   {
+    lcd.setCursor(15, 3);
+    lcd.write(byte(2));
     lcd.setCursor(15, 0);
     lcd.write(byte(1));
   }
@@ -529,32 +531,8 @@ void drawCursor()
     lcd.print(" ");
   }
 
-  if (menuPage % 2 == 0)
-  {
-    if (cursorPosition % 2 == 0)
-    { // If the menu page is even and the cursor position is even that means the cursor should be on line 1
-      lcd.setCursor(0, 0);
-      lcd.write(byte(0));
-    }
-    if (cursorPosition % 2 != 0)
-    { // If the menu page is even and the cursor position is odd that means the cursor should be on line 2
-      lcd.setCursor(0, 1);
-      lcd.write(byte(0));
-    }
-  }
-  if (menuPage % 2 != 0)
-  {
-    if (cursorPosition % 2 == 0)
-    { // If the menu page is odd and the cursor position is even that means the cursor should be on line 2
-      lcd.setCursor(0, 1);
-      lcd.write(byte(0));
-    }
-    if (cursorPosition % 2 != 0)
-    { // If the menu page is odd and the cursor position is odd that means the cursor should be on line 1
-      lcd.setCursor(0, 0);
-      lcd.write(byte(0));
-    }
-  }
+  lcd.setCursor(0, cursorPosition - menuPageIndex);
+  lcd.write(byte(0));
 }
 
 void operateMainMenu()
@@ -579,23 +557,21 @@ void operateMainMenu()
       break;
     case 66: // down -------------------------------------------------------
       button = 0;
-      if (menuPage % 2 == 0 and cursorPosition % 2 != 0)
+      if (cursorPosition == ((sizeof(menuItems) / sizeof(String)) - 1))
       {
-        menuPage = menuPage + 1;
-        menuPage = constrain(menuPage, 0, maxMenuPages);
+        break;
       }
-
-      if (menuPage % 2 != 0 and cursorPosition % 2 == 0)
+      if ((cursorPosition - menuPageIndex) == 3)
       {
-        menuPage = menuPage + 1;
-        menuPage = constrain(menuPage, 0, maxMenuPages);
+        menuPageIndex = menuPageIndex + 1;
+        menuPageIndex = constrain(menuPageIndex, 0, maxMenuPages - 1);
       }
 
       cursorPosition = cursorPosition + 1;
       cursorPosition = constrain(cursorPosition, 0, ((sizeof(menuItems) / sizeof(String)) - 1));
 
       Serial.print("menuPage: ");       // [DEBUG]
-      Serial.println(menuPage);         // [DEBUG]
+      Serial.println(menuPageIndex);    // [DEBUG]
       Serial.print("cursorPosition: "); // [DEBUG]
       Serial.println(cursorPosition);   // [DEBUG]
 
@@ -605,28 +581,22 @@ void operateMainMenu()
       break;
     case 65: // up -------------------------------------------------------
       button = 0;
-      if (menuPage == 0)
+      if (menuPageIndex == 0)
       {
         cursorPosition = cursorPosition - 1;
         cursorPosition = constrain(cursorPosition, 0, ((sizeof(menuItems) / sizeof(String)) - 1));
       }
-      if (menuPage % 2 == 0 and cursorPosition % 2 == 0)
+      if ((cursorPosition - menuPageIndex) == 0)
       {
-        menuPage = menuPage - 1;
-        menuPage = constrain(menuPage, 0, maxMenuPages);
-      }
-
-      if (menuPage % 2 != 0 and cursorPosition % 2 != 0)
-      {
-        menuPage = menuPage - 1;
-        menuPage = constrain(menuPage, 0, maxMenuPages);
+        menuPageIndex = menuPageIndex - 1;
+        menuPageIndex = constrain(menuPageIndex, 0, maxMenuPages - 1);
       }
 
       cursorPosition = cursorPosition - 1;
       cursorPosition = constrain(cursorPosition, 0, ((sizeof(menuItems) / sizeof(String)) - 1));
 
       Serial.print("menuPage: ");       // [DEBUG]
-      Serial.println(menuPage);         // [DEBUG]
+      Serial.println(menuPageIndex);    // [DEBUG]
       Serial.print("cursorPosition: "); // [DEBUG]
       Serial.println(cursorPosition);   // [DEBUG]
 
@@ -639,7 +609,7 @@ void operateMainMenu()
       activeButton = 1;
 
       Serial.print("menuPage: ");       // [DEBUG]
-      Serial.println(menuPage);         // [DEBUG]
+      Serial.println(menuPageIndex);    // [DEBUG]
       Serial.print("cursorPosition: "); // [DEBUG]
       Serial.println(cursorPosition);   // [DEBUG]
 
