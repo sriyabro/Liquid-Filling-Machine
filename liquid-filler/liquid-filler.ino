@@ -342,49 +342,41 @@ void getVolumeToFill()
   if (digitalRead(_250) == LOW)
   {
     volumeToFill = 250;
-    volPerSec = 29.7;
     EEPROM.get(0 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_330) == LOW)
   {
     volumeToFill = 330;
-    volPerSec = 29.5;
     EEPROM.get(1 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_500) == LOW)
   {
     volumeToFill = 500;
-    volPerSec = 29.4;
     EEPROM.get(2 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_675) == LOW)
   {
     volumeToFill = 675;
-    volPerSec = 30.5;
     EEPROM.get(3 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_750) == LOW)
   {
     volumeToFill = 750;
-    volPerSec = 32.8;
     EEPROM.get(4 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_1000) == LOW)
   {
     volumeToFill = 1000;
-    volPerSec = 36.4;
     EEPROM.get(5 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_2000) == LOW)
   {
     volumeToFill = 2000;
-    volPerSec = 36.4;
     EEPROM.get(6 * addressSpacingFactor, pumpSteps);
   }
   else if (digitalRead(_5000) == LOW)
   {
     volumeToFill = 5000;
-    volPerSec = 36.4;
     EEPROM.get(7 * addressSpacingFactor, pumpSteps);
   }
 
@@ -575,6 +567,9 @@ void operateMainMenu()
     if (button == 42)
     {
       menuInvoked = false;
+      activeButton = 1;
+      lcd.clear();
+      lcd.print("Select Volume");
       break;
     }
 
@@ -669,11 +664,9 @@ void menuItem(int itemId) // itemId - cursorPointer
   printStrToLCD("Enter calibaration ", 1);
   lcd.setCursor(0, 1);
   lcd.print("value for ");
-  lcd.setCursor(10, 1);
   lcd.print(menuItems[itemId]);
   lcd.setCursor(0, 2);
   lcd.print("Steps:");
-  lcd.setCursor(7, 2);
   lcd.print(savedSteps);
 
   while (activeButton == 0)
@@ -955,4 +948,6 @@ void startUpMesaage()
   lcd.clear();
   lcd.setCursor(4, 0);
   lcd.print("POWER ON");
+  lcd.clear();
+  lcd.print("Select Volume");
 }
