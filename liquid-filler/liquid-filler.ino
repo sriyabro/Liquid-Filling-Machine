@@ -2,10 +2,10 @@
  * @file liquid-filler.ino
  * @author Sriyanjith Herath (sriyabro@gmail.com)
  * @brief Automated liquid filler machine firmware for the Arduino Mega 2560 R3 .
- * @version 5.0
+ * @version 5.1
  * @date 2022-07-31
  *
- * @copyright  Copyright 2021 Sriyanjith Herath. All rights reserved. Unauthorized access, copying, publishing, sharing, reuse of algorithms, concepts, design patterns and code level demonstrations are strictly prohibited without any written approval of the author.
+ * @copyright  Copyright 2022 Sriyanjith Herath. All rights reserved. Unauthorized access, copying, publishing, sharing, reuse of algorithms, concepts, design patterns and code level demonstrations are strictly prohibited without any written approval of the author.
  */
 
 /**
