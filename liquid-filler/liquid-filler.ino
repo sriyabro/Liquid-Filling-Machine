@@ -135,7 +135,7 @@ const int pumpPulseDelay = 60; // Pump pulse delay in microseconds
 // Global variables
 float volPerSec = 0.0; // Volume per second
 
-double pumpSteps = 0; // Number of steps to move the pump
+unsigned long pumpSteps = 0; // Number of steps to move the pump
 
 unsigned int volumeToFill = 0;
 bool startFillPressed = false;
@@ -612,7 +612,7 @@ void menuItem(int itemId) // (itemId - cursorPointer)
   int activeButton = 0;
 
   lcd.clear();
-  double savedSteps;
+  unsigned long savedSteps;
   EEPROM.get(itemId * addressSpacingFactor, savedSteps);
 
   printStrToLCD("Enter calibaration ", 1);
@@ -632,7 +632,7 @@ void menuItem(int itemId) // (itemId - cursorPointer)
       {
         if (inputString.length() > 0)
         {
-          double saveVal = inputString.toDouble();
+          unsigned long saveVal = inputString.toInt();
           // SAVING TO EEPROM
           EEPROM.put((itemId * addressSpacingFactor), saveVal);
 
